@@ -5,11 +5,12 @@
 
 function! VimCompletesMe#vim_completes_me(shift_tab)
   let dirs = ["\<c-n>", "\<c-p>"]
-  let dir = g:vcm_direction =~? '[nf]'
+  let scroll_dir = g:vcm_scroll_direction =~? '[nf]'
+  let complete_dir = g:vcm_complete_direction =~? '[nf]'
   let map = exists('b:vcm_tab_complete') ? b:vcm_tab_complete : ''
 
   if pumvisible()
-    return a:shift_tab ? dirs[dir] : dirs[!dir]
+    return a:shift_tab ? dirs[scroll_dir] : dirs[!scroll_dir]
   endif
 
   " Figure out whether we should indent/de-indent.
@@ -24,6 +25,10 @@ function! VimCompletesMe#vim_completes_me(shift_tab)
       return g:vcm_s_tab_mapping
   endif
 
+  if a:shift_tab
+    let complete_dir = !complete_dir
+  endif
+
   let omni_pattern = get(b:, 'vcm_omni_pattern', get(g:, 'vcm_omni_pattern'))
   let file_pattern = (has('win32') || has('win64')) ? '\\\|\/' : '\/'
   let return_exp = &completeopt =~ 'noselect' ? "\<C-p>" : "\<C-p>\<C-p>"
@@ -32,38 +37,38 @@ function! VimCompletesMe#vim_completes_me(shift_tab)
     " Check position so that we can fallback if at the same pos.
     if get(b:, 'tab_complete_pos', []) == pos && b:completion_tried
       echo "Falling back to keyword"
-      let exp = "\<C-x>" . dirs[!dir]
+      let exp = "\<C-x>" . dirs[!complete_dir]
     else
       echo "Looking for members..."
       if !empty(&completefunc) && map ==? "user"
-        let exp = dir ? "\<C-x>\<C-u>" : "\<C-x>\<C-u>" . return_exp
+        let exp = complete_dir ? "\<C-x>\<C-u>" : "\<C-x>\<C-u>" . return_exp
       else
-        let exp = dir ? "\<C-x>\<C-o>" : "\<C-x>\<C-o>" . return_exp
+        let exp = complete_dir ? "\<C-x>\<C-o>" : "\<C-x>\<C-o>" . return_exp
       endif
       let b:completion_tried = 1
     endif
     let b:tab_complete_pos = pos
     return exp
   elseif match(substr, file_pattern) != -1
-    return dir ? "\<C-x>\<C-f>" : "\<C-x>\<C-f>" . return_exp
+    return complete_dir ? "\<C-x>\<C-f>" : "\<C-x>\<C-f>" . return_exp
   endif
 
   " If we already tried special completion, fallback to keyword completion
   if exists('b:completion_tried') && b:completion_tried
     let b:completion_tried = 0
-    return "\<C-e>" . dirs[!dir]
+    return "\<C-e>" . dirs[!complete_dir]
   endif
 
   " Fallback to user's vcm_tab_complete or if not set, to keyword completion
   let b:completion_tried = 1
   if map ==? "user"
-    return dir ? "\<C-x>\<C-u>" : "\<C-x>\<C-u>" . return_exp
+    return complete_dir ? "\<C-x>\<C-u>" : "\<C-x>\<C-u>" . return_exp
   elseif map ==? "omni"
     echo "Looking for members..."
-    return dir ? "\<C-x>\<C-o>" : "\<C-x>\<C-o>" . return_exp
+    return complete_dir ? "\<C-x>\<C-o>" : "\<C-x>\<C-o>" . return_exp
   elseif map ==? "vim"
-    return dir ? "\<C-x>\<C-v>" : "\<C-x>\<C-v>" . return_exp
+    return complete_dir ? "\<C-x>\<C-v>" : "\<C-x>\<C-v>" . return_exp
   else
-    return dirs[!dir]
+    return dirs[!complete_dir]
   endif
 endfunction

@@ -13,8 +13,11 @@ let g:loaded_VimCompletesMe = 1
 if !exists('g:vcm_s_tab_behavior')
   let g:vcm_s_tab_behavior = 0
 endif
-if !exists('g:vcm_direction')
-  let g:vcm_direction = 'n'
+if !exists('g:vcm_scroll_direction')
+  let g:vcm_scroll_direction = 'p'
+endif
+if !exists('g:vcm_complete_direction')
+  let g:vcm_complete_direction = 'p'
 endif
 if !exists('g:vcm_default_maps')
   let g:vcm_default_maps = 1
